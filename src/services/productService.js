@@ -1,77 +1,28 @@
-let produtos = [
-  {
-    id: 1,
-    nome: "Mouse Gamer",
-    preco: 120,
-    categoria: "Informática",
-    estoque: 10,
-  },
-  {
-    id: 2,
-    nome: "Teclado Mecânico",
-    preco: 250,
-    categoria: "Informática",
-    estoque: 5,
-  },
-  {
-    id: 3,
-    nome: "Cadeira Gamer",
-    preco: 900,
-    categoria: "Móveis",
-    estoque: 2,
-  },
-];
+const Product = require("../models/Product");
 
-function listarProdutos() {
-  return produtos;
-}
+const listarProdutos = async () => {
+  return await Product.find();
+};
 
-function buscarProdutoPorId(id) {
-  return produtos.find((produto) => produto.id === id);
-}
+const buscarProdutoPorId = async (id) => {
+  return await Product.findById(id);
+};
 
-function criarProduto(dados) {
-  const { nome, preco, categoria, estoque } = dados;
+const criarProduto = async (dadosDoProduto) => {
+  return await Product.create(dadosDoProduto);
+};
 
-  const novoProduto = {
-    id: produtos.length + 1,
-    nome,
-    preco,
-    categoria,
-    estoque,
-  };
+const atualizarProduto = async (id, dados) => {
+  const produtoAtualizado = await Product.findByIdAndUpdate(id, dados, {
+    new: true,
+  });
 
-  produtos.push(novoProduto);
+  return produtoAtualizado;
+};
 
-  return novoProduto;
-}
-
-function atualizarProduto(id, dados) {
-  const produto = buscarProdutoPorId(id);
-
-  if (!produto) {
-    return null;
-  }
-
-  produto.nome = dados.nome;
-  produto.preco = dados.preco;
-  produto.categoria = dados.categoria;
-  produto.estoque = dados.estoque;
-
-  return produto;
-}
-
-function deletarProduto(id) {
-  const produtoExiste = produtos.some((produto) => produto.id === id);
-
-  if (!produtoExiste) {
-    return false;
-  }
-
-  produtos = produtos.filter((produto) => produto.id !== id);
-
-  return true;
-}
+const deletarProduto = async (id) => {
+  return await Product.findByIdAndDelete(id);
+};
 
 module.exports = {
   listarProdutos,

@@ -1,38 +1,51 @@
+const mongoose = require("mongoose");
 const studentService = require("../services/studentService");
 
-function listarAlunos(req, res) {
-  const alunos = studentService.listarAlunos();
-
-  res.json(alunos);
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
 }
 
-function buscarAlunoPorId(req, res) {
-  const id = Number(req.params.id);
-
-  const aluno = studentService.buscarAlunoPorId(id);
-
-  if (!aluno) {
-    return res.status(404).json({
-      erro: "Aluno não encontrado.",
-    });
+const listarAlunos = async (req, res, next) => {
+  try {
+    const alunos = await studentService.listarAlunos();
+    return res.json(alunos);
+  } catch (error) {
+    next(error);
   }
+};
 
-  res.json(aluno);
-}
+const buscarAlunoPorId = async (req, res, next) => {
+  try {
+    const { id } = req.params;
 
-function criarAluno(req, res) {
-  const { nome, email, curso, ativo } = req.body;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        erro: "ID inválido.",
+      });
+    }
 
-  if (!nome || !email || !curso || ativo === undefined) {
-    return res.status(400).json({
-      erro: "Algum dado está incompleto.",
-    });
+    const aluno = await studentService.buscarAlunoPorId(id);
+
+    if (!aluno) {
+      return res.status(404).json({
+        erro: "aluno não encontrado.",
+      });
+    }
+
+    res.json(aluno);
+  } catch (error) {
+    next(error);
   }
+};
 
-  const novoAluno = studentService.criarAluno({ nome, email, curso, ativo });
-
-  res.status(201).json(novoAluno);
-}
+const criarAluno = async (req, res) => {
+  try {
+    const aluno = await studentService.criarAluno(req.body);
+    return res.status(201).json(aluno);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
 
 function atualizarAluno(req, res) {
   const id = Number(req.params.id);
@@ -40,40 +53,53 @@ function atualizarAluno(req, res) {
 
   if (!nome || !email || !curso || ativo === undefined) {
     return res.status(400).json({
-      erro: "Nome, email e curso são obrigatórios.",
+      erro: "Todos os campos são obrigatórios.",
     });
   }
 
-  const AlunoAtualizado = studentService.atualizarAluno(id, {
+  const alunoAtualizado = studentService.atualizarAluno(id, {
     nome,
     email,
     curso,
-    ativo,
   });
 
-  if (!AlunoAtualizado) {
+  if (!alunoAtualizado) {
     return res.status(404).json({
-      erro: "Aluno não encontrado.",
+      erro: "aluno não encontrado.",
     });
   }
 
-  res.json(AlunoAtualizado);
+  res.json(alunoAtualizado);
 }
 
-function deletarAluno(req, res) {
-  const id = Number(req.params.id);
+async function deletarAluno(req, res) {
+  try {
+    const { id } = req.params;
 
-  const deletado = studentService.deletarAluno(id);
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        erro: "ID inválido.",
+      });
+    }
 
-  if (!deletado) {
-    return res.status(404).json({
-      erro: "Aluno não encontrado.",
+    const alunoDeletado = await studentService.deletarAluno(id);
+
+    if (!alunoDeletado) {
+      return res.status(404).json({
+        message: "Aluno não encontrado para exclusão.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Aluno removido com sucesso.",
+      aluno: alunoDeletado,
     });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return res.status(400).json({ error: "ID de aluno inválido." });
+    }
   }
-
-  res.json({
-    mensagem: "Aluno deletado com sucesso.",
-  });
+  return res.status(500).json({ error: error.message });
 }
 
 module.exports = {

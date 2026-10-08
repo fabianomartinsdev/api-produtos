@@ -1,62 +1,26 @@
-let alunos = [
-  {
-    id: 1,
-    nome: "Ana",
-    email: "ana@email.com",
-    curso: "Node.js",
-    ativo: true,
-  },
-  {
-    id: 2,
-    nome: "Bruno",
-    email: "bruno@email.com",
-    curso: "React",
-    ativo: true,
-  },
-];
+const Student = require("../models/Student");
 
-function listarAlunos() {
-  return alunos;
+async function listarAlunos() {
+  return await Student.find();
 }
 
-function buscarAlunoPorId(id) {
-  return alunos.find((aluno) => aluno.id === id);
+async function buscarAlunoPorId(id) {
+  return await Student.findById(id);
 }
 
-function criarAluno(aluno) {
-  const novoAluno = {
-    id: alunos.length > 0 ? Math.max(...alunos.map((a) => a.id)) + 1 : 1,
-    ...aluno,
-  };
-  alunos.push(novoAluno);
-  return novoAluno;
+async function criarAluno(aluno) {
+  return await Student.create(aluno);
 }
 
-function atualizarAluno(id, dados) {
-  const aluno = buscarAlunoPorId(id);
-
-  if (!aluno) {
-    return null;
-  }
-
-  aluno.nome = dados.nome;
-  aluno.email = dados.email;
-  aluno.curso = dados.curso;
-  aluno.ativo = dados.ativo;
-
-  return aluno;
+async function atualizarAluno(id, dados) {
+  const alunoAtualizado = await Student.findByIdAndUpdate(id, dados, {
+    new: true,
+  });
+  return alunoAtualizado;
 }
 
-function deletarAluno(id) {
-  const alunoExiste = alunos.some((aluno) => aluno.id === id);
-
-  if (!alunoExiste) {
-    return false;
-  }
-
-  alunos = alunos.filter((aluno) => aluno.id !== id);
-
-  return true;
+async function deletarAluno(id) {
+  return await Student.findByIdAndDelete(id);
 }
 
 module.exports = {
